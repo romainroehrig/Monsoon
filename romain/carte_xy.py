@@ -20,6 +20,7 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from myfunctions import shiftgrid
 from data import getfile
 from seasons import seasons
+from variables import varinfo
 import config as cc
 
 
@@ -39,13 +40,16 @@ def carte_xy(sim,var,lev=None,rep0='./images/',
         varname = '{0}{1}'.format(var,int(lev))
 
     # Get plot details
-    coef       = cc.xy_plotdetails[varname]['coef']
-    units      = cc.xy_plotdetails[varname]['units']
+    coef       = varinfo[var]['coef']
+    units      = varinfo[var]['units']
     cmap       = cc.xy_plotdetails[varname]['cmap']
     bounds     = cc.xy_plotdetails[varname]['bounds']
     firstwhite = cc.xy_plotdetails[varname]['firstwhite']
     ext        = cc.xy_plotdetails[varname]['ext']
-    title      = cc.xy_plotdetails[varname]['title']
+    if lev is None:
+        title = varinfo[var]['name']
+    else:
+        title = '{0} at {1} hPa'.format(varinfo[var]['name'],int(lev))
 
     # Ouverture du fichier
     data_nc = getfile(sim,var)
@@ -85,8 +89,10 @@ def carte_xy(sim,var,lev=None,rep0='./images/',
     # prepare colormap
     cmaplist = [cmap(i) for i in range(cmap.N)]
     if firstwhite:
-        cmaplist[0] = (1,1,1,0)
-    cmap = cmap.from_list('Custom cmap', cmaplist[:-20], len(cmaplist)-20)
+        cmaplist[20] = (1,1,1,0)
+    cmap = cmap.from_list('Custom cmap', cmaplist[20:-20], len(cmaplist)-40)
+    cmap.set_under(cmaplist[0])
+    cmap.set_over(cmaplist[-1])
     norm = mpl.colors.BoundaryNorm(bounds,cmap.N)
 
     # Plot

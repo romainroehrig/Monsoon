@@ -10,4 +10,7 @@ def getfile(sim,var):
     elif sim in ['DELANNOY_slab_cont_WA']:
         f = '{0}/{1}/M/{1}_arpsfx_monthly_{2}_1850-1859.nc'.format(rep0,sim,var)
 
+    elif sim in ['DELANNOY_slab_cont_WA_evap{0:0>2}'.format(i) for i in range(0,11)]:
+        f = '{0}/{1}/{1}_arpsfx_monthly_{2}_1850-1859.nc'.format(rep0,sim,var)
+
     return f

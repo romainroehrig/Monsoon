@@ -1,6 +1,9 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 import os
+
+import argparse
 
 from carte_xy import carte_xy
 
@@ -8,7 +11,12 @@ repout = './images/'
 if not(os.path.exists(repout)):
     os.makedirs(repout)
 
-sim = 'DELANNOY_slab_cont_WA'
+parser = argparse.ArgumentParser()
+parser.add_argument("-sim", help="simulations to plot", type=str, required=True)
+args = parser.parse_args()
+
+#sim = 'DELANNOY_slab_cont_WA'
+sim = args.sim
 
 
 #### Cartes global
