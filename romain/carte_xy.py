@@ -52,7 +52,11 @@ def carte_xy(sim,var,lev=None,rep0='./images/',
         title = '{0} at {1} hPa'.format(varinfo[var]['name'],int(lev))
 
     # Ouverture du fichier
-    data_nc = getfile(sim,var)
+    if season == 'year':
+        dtype = 'timmean_1860-1869'
+    else:
+        dtype = '{0}mean_1860-1869'.format(season)
+    data_nc = getfile(sim,var,dtype=dtype)
     fnc = nc.Dataset(data_nc)
 
 
@@ -60,13 +64,13 @@ def carte_xy(sim,var,lev=None,rep0='./images/',
     lat = fnc.variables['lat'][:]
     lon = fnc.variables['lon'][:]
 
-    for taxis in ['time','time_counter']:
-        try:
-            time = fnc.variables[taxis]
-            break
-        except:
-            pass
-    dates = nc.num2date(time[:],units=time.units,calendar=time.calendar)
+#    for taxis in ['time','time_counter']:
+#        try:
+#            time = fnc.variables[taxis]
+#            break
+#        except:
+#            pass
+#    dates = nc.num2date(time[:],units=time.units,calendar=time.calendar)
 
     data = fnc.variables[var]
     if len(data.shape) == 4:
@@ -74,14 +78,14 @@ def carte_xy(sim,var,lev=None,rep0='./images/',
         levaxis = fnc.variables[levname][:]
         data = np.squeeze(data[:,levaxis == lev*100.,:,:])*coef
     else:
-        data = data[:,:,:]*coef
+        data = np.squeeze(data[:,:,:])*coef
 
     # shifting grid from 0-360 to -180-180
     datanew, lonnew = shiftgrid(180,data,lon)
 
     # average over the chosen season
-    inds = [d.month in seasons[season] for d in dates]
-    datanew=np.average(datanew[inds],axis=0)
+#    inds = [d.month in seasons[season] for d in dates]
+#    datanew=np.average(datanew[inds],axis=0)
 
     # Mise en place de la carte
     proj = ccrs.PlateCarree(central_longitude=0, globe=None)
