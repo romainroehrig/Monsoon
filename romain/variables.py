@@ -13,5 +13,17 @@ varinfo = {
         'ta':  {'coef': 1.,     'units': r'K',             'name': 'Temperature'},
         'hus': {'coef': 1000.,  'units': r'g kf$^{-1}$',   'name': 'Specific Humidity'},
         'ua':  {'coef': 1.,     'units': r'm s$^{-1}$',    'name': 'Zonal Wind'},
-        'va':  {'coef': 1.,     'units': r'm s$^{-1}$',    'name': 'Meridional Wind'}
+        'va':  {'coef': 1.,     'units': r'm s$^{-1}$',    'name': 'Meridional Wind'},
+        'wap': {'coef': 864.,   'units': r'hPa day$^{-1}$','name': 'Pressure Vertical Velocity'},
+        'mse': {'coef': 0.001,  'units': r'kJ kg$^{-1}$',  'name': 'Moist Static Energy'},
+        'fnet':{'coef': 1.,     'units': r'W m$^{-2}$',    'name': 'Atmospheric Net Flux Divergence'},
+        'rsa': {'coef': 1.,     'units': r'W m$^{-2}$',    'name': 'Atmospheric SW Radiative Flux Divergence'},
+        'rla': {'coef': 1.,     'units': r'W m$^{-2}$',    'name': 'Atmospheric LW Radiative Flux Divergence'},
+        'rna': {'coef': 1.,     'units': r'W m$^{-2}$',    'name': 'Atmospheric Net Radiative Flux Divergence'},
+        'hfs': {'coef': 1.,     'units': r'W m$^{-2}$',    'name': 'Surface Net Turbulent Heat Flux'},
+        'hfls':{'coef': 1.,     'units': r'W m$^{-2}$',    'name': 'Surface Turbulent Latent Heat Flux'},
+        'hfss':{'coef': 1.,     'units': r'W m$^{-2}$',    'name': 'Surface Turbulent Sensible Heat Flux'},
+        'int_mse_advh':{'coef': -1., 'units': r'W m$^{-2}$',    'name': 'Vertically-Integrated MSE horizontal advection'},
+        'int_mse_advw':{'coef': -1., 'units': r'W m$^{-2}$',    'name': 'Vertically-Integrated MSE vertical advection'},
+        'res':{'coef': 1.,      'units': r'W m$^{-2}$',    'name': 'Vertically-Integrated MSE residual'},
         }

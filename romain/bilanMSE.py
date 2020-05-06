@@ -14,8 +14,15 @@ import netCDF4 as nc
 import numpy as np
 
 from myfunctions import shiftgrid
-#from data_atlas import getfile
-from seasons import seasons
+from data import getfile
+#from seasons import seasons
+
+sim = 'DELANNOY_slab_cont_WA_evap00'
+season = 'JJAS'
+
+ss = season
+if season == 'year':
+    ss = 'tim'
 
 # Constants
 
@@ -27,46 +34,43 @@ Rt = 6371000 # m
 
 # Variables
 
-var2read = ['ta','hus','zg','ua','va','wap','ps']
+var2read = ['ta','hus','zg','ua','va','wap','ps','rsdt','rsut','rsds','rsus','rlut','rlds','rlus','hfls','hfss']
 
-#sim='Simu_Base'
-#cont='real'	
-seasons = {'year': range(1,13),
-           'JJAS': [6,7,8,9],
-           }
-#if sim=='Simu_Base':
-#    t='time'
-#else:
-#    t='time_counter'
-    
 #Lecture des fichiers
 
 data = {}
 
 for var in var2read:
-    tmp = '/Volumes/CNRM/TMP/simulations/DELANNOY/DELANNOY_slab_cont_WA_evap00/ymonmean_1860-1869/{0}.nc'.format(var) #getfile(sim,var)
+    tmp = getfile(sim,var,dtype='{0}mean_1860-1869'.format(ss)) #'/Volumes/CNRM/TMP/simulations/DELANNOY/DELANNOY_slab_cont_WA_evap00/ymonmean_1860-1869/{0}.nc'.format(var) #getfile(sim,var)
+    print var, tmp
     fnc = nc.Dataset(tmp)
 
     lat = fnc['lat'][:]
     
-    if var == 'ps':
-        data[var],lon = shiftgrid(180,fnc[var][:,:,:],fnc['lon'][:],start=False,cyclic=360.)
-    else:
+    if 'pstd' in fnc.dimensions.keys():
         lev = fnc['pstd'][:]
-        data[var],lon = shiftgrid(180,fnc[var][:,:,:,:],fnc['lon'][:],start=False,cyclic=360.)
+        data[var],lon = shiftgrid(180,np.ma.squeeze(fnc[var][:,:,:,:]),fnc['lon'][:],start=False,cyclic=360.)
+    else:
+        data[var],lon = shiftgrid(180,np.ma.squeeze(fnc[var][:,:,:]),fnc['lon'][:],start=False,cyclic=360.)
 
-    dates = nc.num2date(fnc['time_counter'][:],units=fnc['time_counter'].units,calendar=fnc['time_counter'].calendar)
+#    dates = nc.num2date(fnc['time_counter'][:],units=fnc['time_counter'].units,calendar=fnc['time_counter'].calendar)
 
-    inds = [d.month in seasons['JJAS'] for d in dates]
+#    inds = [d.month in seasons['JJAS'] for d in dates]
     # Average over JJAS
-    data[var] = np.ma.average(data[var][inds],axis=0)
+#    data[var] = np.ma.average(data[var][inds],axis=0)
 
     fnc.close()
 
+tmp = tmp.split('/')[:-1]
+dirout = os.path.join('/',*tmp)
+
+# Computing MSE
 
 mse = Cp*data['ta']+g*data['zg']+Lv*data['hus'] # J kg-1
 
 nlev,nlat,nlon = mse.shape
+
+# Computing MSE gradients and advections
 
 dlon = (lon[1:]-lon[:-1])*math.pi/180.*Rt
 dx = mse*0. # Note we do not consider the upper boundary
@@ -114,73 +118,77 @@ mse_advw = mse*0.
 mse_advw[1:,:,:] = wpos[1:,:,:]*mse_dp[:-1,:,:] + wneg[:-1,:,:]*mse_dp[:-1,:,:]
 mse_advw[:-1,:,:] = mse_advw[:-1,:,:] + wneg[:-1,:,:]*mse_dp[:-1,:,:]
 
+data['mse'] = mse
+
+data['mse_dx'] = mse_dx
+data['mse_dy'] = mse_dy
+data['mse_dp'] = mse_dp
+
+data['mse_advu'] = mse_advu
+data['mse_advv'] = mse_advv
+data['mse_advw'] = mse_advw
+data['mse_advh'] = mse_advu + mse_advv
+data['mse_adv'] = data['mse_advh'] + mse_advw
+
+
 # Vertical integration
 
-int_mse_advu = np.zeros((nlat,nlon))
-int_mse_advv = np.zeros((nlat,nlon))
-int_mse_advw = np.zeros((nlat,nlon))
+for var in ['u','v','w']:
+    varloc = 'mse_adv' + var
+    varint = 'int_mse_adv' + var
 
-int_mse_advu[:,:] = mse_advu[0,:,:]*(data['ps'][:,:]-(lev[0]+lev[1])/2.)
-int_mse_advv[:,:] = mse_advv[0,:,:]*(data['ps'][:,:]-(lev[0]+lev[1])/2.)
-int_mse_advw[:,:] = mse_advw[0,:,:]*(data['ps'][:,:]-(lev[0]+lev[1])/2.)
+    data[varint] = data[varloc][0,:,:]*(data['ps'][:,:]-(lev[0]+lev[1])/2.)
 
+    for ilev in range(1,nlev-1):
+        data[varint][:,:] = data[varint][:,:] + data[varloc][ilev,:,:]*(lev[ilev-1]-lev[ilev+1])/2./g # W m-2
 
-for ilev in range(1,nlev-1):
-    int_mse_advu[:,:] = int_mse_advu[:,:] + mse_advu[ilev,:,:]*(lev[ilev-1]-lev[ilev+1])/2.
-    int_mse_advv[:,:] = int_mse_advv[:,:] + mse_advv[ilev,:,:]*(lev[ilev-1]-lev[ilev+1])/2.
-    int_mse_advw[:,:] = int_mse_advw[:,:] + mse_advw[ilev,:,:]*(lev[ilev-1]-lev[ilev+1])/2.
+data['int_mse_advh'] = data['int_mse_advu'] + data['int_mse_advv']
+data['int_mse_adv'] = data['int_mse_advh'] + data['int_mse_advw']
 
-int_mse_advu = int_mse_advu/data['ps']
-int_mse_advv = int_mse_advv/data['ps']
-int_mse_advw = int_mse_advw/data['ps']
+# Other data
 
-int_mse_advhor = mse_advu + mse_advv
+data['rsa'] = data['rsdt'] - data['rsut'] - (data['rsds'] - data['rsus'])
+data['rla'] = 0. - data['rlut'] - (data['rlds'] - data['rlus'])
+data['rna'] = data['rsa'] + data['rla']
+data['hfs'] = data['hfls'] + data['hfss']
+data['fnet'] = data['rna'] + data['hfs']
+
+# Residual
+
+data['res'] = data['fnet'] - data['int_mse_adv']
 
 # Saving data
-fout = nc.Dataset('/Volumes/CNRM/TMP/simulations/DELANNOY/DELANNOY_slab_cont_WA_evap00/ymonmean_1860-1869/output.nc','w')
-fout.createDimension('lev', nlev)
-fout.createDimension('lat', nlat)
-fout.createDimension('lon', nlon)
+var2save = ['mse'] + ['mse_d'+v for v in ['x','y','p']]\
+        + ['mse_adv'+v for v in ['u','v','w']]\
+        + ['int_mse_adv'+v for v in ['u','v','w']]\
+        + ['mse_advh','int_mse_advh','mse_adv','int_mse_adv']\
+        + ['rsa','rla','rna','hfs','fnet']\
+        + ['res']
 
-levAxis = fout.createVariable('lev','f4',('lev',))
-levAxis[:] = lev[:]
-latAxis = fout.createVariable('lat','f4',('lat',))
-latAxis[:] = lat[:]
-lonAxis = fout.createVariable('lon','f4',('lon',))
-lonAxis[:] = lon[:]
+for var in var2save:
+    fout = nc.Dataset('/{0}/{1}.nc'.format(dirout,var),'w')
 
+    lvar3D = len(data[var].shape) == 3
 
-nc_mse = fout.createVariable('mse','f4',('lev','lat','lon',))
-nc_mse[:,:,:] =  mse[:,:,:]
+    if lvar3D:
+        fout.createDimension('pstd', nlev)
+        levAxis = fout.createVariable('pstd','f4',('pstd',))
+        levAxis[:] = lev[:]
 
-nc_mse_dx = fout.createVariable('mse_dx','f4',('lev','lat','lon',))
-nc_mse_dx[:,:,:] =  mse_dx[:,:,:]
+    fout.createDimension('lat', nlat)
+    latAxis = fout.createVariable('lat','f4',('lat',))
+    latAxis[:] = lat[:]
 
-nc_mse_dy = fout.createVariable('mse_dy','f4',('lev','lat','lon',))
-nc_mse_dy[:,:,:] =  mse_dy[:,:,:]
+    fout.createDimension('lon', nlon)
+    lonAxis = fout.createVariable('lon','f4',('lon',))
+    lonAxis[:] = lon[:]
 
-nc_mse_dp = fout.createVariable('mse_dp','f4',('lev','lat','lon',))
-nc_mse_dp[:,:,:] =  mse_dp[:,:,:]
+    if lvar3D:
+        nc_var = fout.createVariable(var,'f4',('pstd','lat','lon',))
+        nc_var[:,:,:] = data[var][:,:,:]
+    else:
+        nc_var = fout.createVariable(var,'f4',('lat','lon',))
+        nc_var[:,:] = data[var][:,:]
 
-
-nc_mse_advu = fout.createVariable('mse_advu','f4',('lev','lat','lon',))
-nc_mse_advu[:,:,:] =  mse_advu[:,:,:]
-
-nc_int_mse_advu = fout.createVariable('int_mse_advu','f4',('lat','lon',))
-nc_int_mse_advu[:,:] = int_mse_advu[:,:]
-
-nc_mse_advv = fout.createVariable('mse_advv','f4',('lev','lat','lon',))
-nc_mse_advv[:,:,:] =  mse_advv[:,:,:]
-
-nc_int_mse_advv = fout.createVariable('int_mse_advv','f4',('lat','lon',))
-nc_int_mse_advv[:,:] = int_mse_advv[:,:]
-
-nc_mse_advw = fout.createVariable('mse_advw','f4',('lev','lat','lon',))
-nc_mse_advw[:,:,:] =  mse_advw[:,:,:]
-
-nc_int_mse_advw = fout.createVariable('int_mse_advw','f4',('lat','lon',))
-nc_int_mse_advw[:,:] = int_mse_advw[:,:]
-
-fout.close()
-
+    fout.close()
 

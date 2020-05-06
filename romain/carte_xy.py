@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 import netCDF4 as nc
 
@@ -77,11 +78,23 @@ def carte_xy(sim,var,lev=None,rep0='./images/',
         levname = 'pstd'
         levaxis = fnc.variables[levname][:]
         data = np.squeeze(data[:,levaxis == lev*100.,:,:])*coef
-    else:
+    elif 'pstd' in fnc.dimensions.keys():
+        levname = 'pstd'
+        levaxis = fnc.variables[levname][:]
+        data = np.squeeze(data[levaxis == lev*100.,:,:])*coef
+    elif len(data.shape) == 3:
         data = np.squeeze(data[:,:,:])*coef
+    elif len(data.shape) == 2:
+        data = np.squeeze(data[:,:])*coef
+    else:
+        print 'ERROR: shape unexpected:', data.shape
+        sys.exit()
 
     # shifting grid from 0-360 to -180-180
-    datanew, lonnew = shiftgrid(180,data,lon)
+    if np.max(lon) > 180.:
+        datanew, lonnew = shiftgrid(180,data,lon)
+    else:
+        datanew, lonnew = data, lon
 
     # average over the chosen season
 #    inds = [d.month in seasons[season] for d in dates]

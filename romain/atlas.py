@@ -24,13 +24,18 @@ cont = args.cont
 
 #### Cartes global
 
-seasons = ['year','JJAS']
+#seasons = ['year','JJAS']
+seasons = ['JJAS']
 
-var2D_xy = ['pr','tas','clt']
-var3D_xy = ['ua','va']
+#var2D_xy = ['pr','tas','clt']
+var2D_xy = ['fnet','rsa','rla','rna','hfs','hfls','hfss','int_mse_advh','int_mse_advw','res']
+#var3D_xy = ['ua','va','wap','mse']
+var3D_xy = ['wap','mse']
 
 levels = {'ua': [925,700,200],
-          'va': [925,700,200]
+          'va': [925,700,200],
+          'wap': [850,400],
+          'mse': [925,200]
           }
 
 xlim = (-180,180)
