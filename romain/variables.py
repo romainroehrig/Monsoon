@@ -25,5 +25,11 @@ varinfo = {
         'hfss':{'coef': 1.,     'units': r'W m$^{-2}$',    'name': 'Surface Turbulent Sensible Heat Flux'},
         'int_mse_advh':{'coef': -1., 'units': r'W m$^{-2}$',    'name': 'Vertically-Integrated MSE horizontal advection'},
         'int_mse_advw':{'coef': -1., 'units': r'W m$^{-2}$',    'name': 'Vertically-Integrated MSE vertical advection'},
+        'int_mse_adv': {'coef': -1., 'units': r'W m$^{-2}$',    'name': 'Vertically-Integrated MSE total advection'},
         'res':{'coef': 1.,      'units': r'W m$^{-2}$',    'name': 'Vertically-Integrated MSE residual'},
+        'mse_adv': {'coef': -86400./1000., 'units': r'kJ kg$^{-1}$ day$^{-1}$',  'name': 'MSE total advection'},
+        'mse_advu': {'coef': -86400./1000., 'units': r'kJ kg$^{-1}$ day$^{-1}$', 'name': 'MSE zonal advection'},
+        'mse_advv': {'coef': -86400./1000., 'units': r'kJ kg$^{-1}$ day$^{-1}$', 'name': 'MSE meridional advection'},
+        'mse_advh': {'coef': -86400./1000., 'units': r'kJ kg$^{-1}$ day$^{-1}$', 'name': 'MSE horizontal advection'},
+        'mse_advw': {'coef': -86400./1000., 'units': r'kJ kg$^{-1}$ day$^{-1}$', 'name': 'MSE vertical advection'},
         }

@@ -28,14 +28,19 @@ cont = args.cont
 seasons = ['JJAS']
 
 #var2D_xy = ['pr','tas','clt']
-var2D_xy = ['fnet','rsa','rla','rna','hfs','hfls','hfss','int_mse_advh','int_mse_advw','res']
+var2D_xy = ['fnet','rsa','rla','rna','hfs','hfls','hfss','int_mse_advh','int_mse_advw','int_mse_adv','res']
 #var3D_xy = ['ua','va','wap','mse']
-var3D_xy = ['wap','mse']
+var3D_xy = ['wap','mse','mse_adv','mse_advu','mse_advv','mse_advw','mse_advh']
 
-levels = {'ua': [925,700,200],
-          'va': [925,700,200],
+levels = {'ua': [925,850,700,200],
+          'va': [925,850,700,200],
           'wap': [850,400],
-          'mse': [925,200]
+          'mse': [925,850,200],
+          'mse_adv': [925,850,],
+          'mse_advu': [925,850,],
+          'mse_advv': [925,850,],
+          'mse_advh': [925,850,],
+          'mse_advw': [925,850,],
           }
 
 xlim = (-180,180)
